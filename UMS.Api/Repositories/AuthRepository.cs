@@ -1,16 +1,12 @@
-﻿using CommonInsfrastructure.Interfaces;
-using Data;
+﻿using Data;
 using LicenseLibrary;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using UMS.Api.Domain.DTO;
 using UMS.Api.Interfaces;
 using UMS.Api.Models;
@@ -25,25 +21,24 @@ namespace UMS.Api.Repositories
         private readonly IConfiguration m_cofiguration;
         private readonly ILicense m_license;
         private readonly IServiceProvider m_serviceProvider;
+        private readonly IPasswordPolicyService m_passwordPolicyService;
 
-        public AuthRepository(IRepository dbContext, UmsContext umsContext, IConfiguration cofiguration, ILicense license, IServiceProvider serviceProvider)
+        public AuthRepository(IRepository dbContext, UmsContext umsContext, IConfiguration cofiguration, ILicense license, IServiceProvider serviceProvider, IPasswordPolicyService passwordPolicyService)
         {
             m_dbContext = dbContext;
             m_umsContext = umsContext;
             m_cofiguration = cofiguration;
             m_license = license;
             m_serviceProvider = serviceProvider;
+            m_passwordPolicyService = passwordPolicyService;
         }
 
         public Task<RegisterUserPostDTO> registerUser(RegisterUserDTO user, long createdBy)
         {
             try
             {
-                //for create password hash
-                var hmac = new HMACSHA512();
-
-                byte[] PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(user.Password));
-                byte[] PasswordSalt = hmac.Key;
+                string PasswordSalt = m_passwordPolicyService.generateSalt();
+                string PasswordHash = m_passwordPolicyService.getPasswordHash(user.Password, PasswordSalt);
 
                 //create tempUser in User modal
                 User tempUser = new User
@@ -59,7 +54,6 @@ namespace UMS.Api.Repositories
                     CreatedAt = DateTime.Now,
                     CreatedBy = createdBy
                 };
-
 
                 m_dbContext.Create(tempUser);
                 m_dbContext.Save();
@@ -80,7 +74,6 @@ namespace UMS.Api.Repositories
                 };
 
                 return Task.FromResult(RegisterUser);
-
             }
             catch (Exception ex)
             {
@@ -96,11 +89,10 @@ namespace UMS.Api.Repositories
 
                 if (tempUser != null && tempUser.UserName != null)
                 {
-                    var hmac = new HMACSHA512(tempUser.PasswordSalt);
+                    string IncomingPasswordHash = m_passwordPolicyService.getPasswordHash(user.Password, tempUser.PasswordSalt);
 
-                    var ComputedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(user.Password));
-
-                    return ComputedHash.SequenceEqual(tempUser.PasswordHash);
+                    if (IncomingPasswordHash == tempUser.PasswordHash) return true;
+                    else return false;
                 }
                 else
                 {
@@ -117,9 +109,9 @@ namespace UMS.Api.Repositories
         {
             try
             {
-                long? userId = m_umsContext.AuthTokens.Where(u=> u.Token == sessionToken && u.ExpireDate>DateTime.Now && u.DeletedAt == null).Select(u=>u.UserId).FirstOrDefault();
+                long? userId = m_umsContext.AuthTokens.Where(u => u.Token == sessionToken && u.ExpireDate > DateTime.Now && u.DeletedAt == null).Select(u => u.UserId).FirstOrDefault();
 
-                var platform = m_umsContext.Platforms.Where(p=>p.PlatformId == platformId).FirstOrDefault();
+                var platform = m_umsContext.Platforms.Where(p => p.PlatformId == platformId).FirstOrDefault();
 
                 if (platform != null)
                 {
@@ -141,7 +133,6 @@ namespace UMS.Api.Repositories
                         claims.Add(new Claim("email", user.Email.ToString()));
                         claims.Add(new Claim("currentPlatformId", platformId.ToString()));
                         claims.Add(new Claim("currentPlatform", currentPlatform));
-
                     }
                     else
                     {
@@ -159,7 +150,6 @@ namespace UMS.Api.Repositories
                                                 PlatformID = p.PlatformId,
                                                 PlatformName = p.PlatformName,
                                                 PlatformURL = p.PlatformUrl,
-
                                             };
 
                         if (userPlatforms.Any())
@@ -168,9 +158,7 @@ namespace UMS.Api.Repositories
                             {
                                 claims.Add(new Claim("platforms", pl.PlatformName + " || " + pl.PlatformURL + " || " + pl.PlatformID));
                             }
-
                         }
-
 
                         //Retrive roles
                         var userRoles = from ur in m_umsContext.UserRoles
@@ -194,7 +182,6 @@ namespace UMS.Api.Repositories
                         //Check license validation for get permissions
                         if (m_license.isLicenseValid(platformCode))
                         {
-
                             //Retrive permissions
                             var userPermissions = from ur in m_umsContext.UserRoles
                                                   join rp in m_umsContext.RolePermissions on ur.RoleId equals rp.RoleId
@@ -209,7 +196,6 @@ namespace UMS.Api.Repositories
                             {
                                 var uniquePermissions = userPermissions.Select(up => up.PermissionName).Distinct().ToList();
 
-
                                 foreach (var permission in uniquePermissions)
                                 {
                                     claims.Add(new Claim("permissions", permission));
@@ -217,7 +203,6 @@ namespace UMS.Api.Repositories
                             }
                             claims.Add(new Claim("license", "full"));
                         }
-
                         else
                         {
                             var userPermissions = from ur in m_umsContext.UserRoles
@@ -232,7 +217,6 @@ namespace UMS.Api.Repositories
                             if (userPermissions.Any())
                             {
                                 var uniquePermissions = userPermissions.Select(up => up.PermissionName).Distinct().ToList();
-
 
                                 foreach (var permission in uniquePermissions)
                                 {
@@ -260,8 +244,6 @@ namespace UMS.Api.Repositories
                 {
                     throw new Exception("Platform Id not found");
                 }
-
-
             }
             catch (Exception ex)
             {
@@ -299,7 +281,6 @@ namespace UMS.Api.Repositories
                 };
 
                 return cookieOptions;
-
             }
             catch (Exception ex)
             {
@@ -337,7 +318,6 @@ namespace UMS.Api.Repositories
 
                 // Encode the expiration date to Base64
                 string encodedExpireDate = Convert.ToBase64String(Encoding.UTF8.GetBytes(expirationDate.ToString()));
-
 
                 //var combinedToken = $"{token}.{encodedExpireDate}";
 
@@ -383,9 +363,8 @@ namespace UMS.Api.Repositories
 
                 User exsistingResult = m_dbContext.GetById<User>(user.UserId);
 
-                var hmac = new HMACSHA512();
-                exsistingResult.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(resetPassword.Password));
-                exsistingResult.PasswordSalt = hmac.Key;
+                exsistingResult.PasswordSalt = m_passwordPolicyService.generateSalt();
+                exsistingResult.PasswordHash = m_passwordPolicyService.getPasswordHash(resetPassword.Password, exsistingResult.PasswordSalt);
                 exsistingResult.UpdatedAt = DateTime.Now;
                 exsistingResult.UpdatedBy = user.UserId;
 
@@ -402,7 +381,6 @@ namespace UMS.Api.Repositories
 
         private bool validateToken(string resetToken)
         {
-
             // Extract token and signature
             string[] tokenParts = resetToken.Split('.');
             if (tokenParts.Length != 3)
@@ -419,7 +397,6 @@ namespace UMS.Api.Repositories
             byte[] expireDateBytes = Convert.FromBase64String(expirationDateString);
             string expireDateStr = Encoding.UTF8.GetString(expireDateBytes);
             DateTime expireDate = DateTime.Parse(expireDateStr);
-
 
             // Recompute signature for the token
             string computedSignature = CreateTokenSignature(token);
@@ -467,7 +444,6 @@ namespace UMS.Api.Repositories
                         ExpireDate = DateTime.Now.AddDays(1),
                         CreatedAt = DateTime.Now,
                         CreatedBy = tempUser.UserId,
-
                     };
                     m_dbContext.Create(token);
                     m_dbContext.Save();
@@ -511,7 +487,6 @@ namespace UMS.Api.Repositories
             return hash;
         }
 
-
         public bool validateSessionToken(long userId, string sessionToken)
         {
             try
@@ -546,9 +521,9 @@ namespace UMS.Api.Repositories
         {
             try
             {
-                AuthToken? token = m_umsContext.AuthTokens.FirstOrDefault(t=>t.UserId == userId && t.Token == sessionToken);
+                AuthToken? token = m_umsContext.AuthTokens.FirstOrDefault(t => t.UserId == userId && t.Token == sessionToken);
 
-                if(token != null)
+                if (token != null)
                 {
                     token.DeletedAt = DateTime.Now;
                     token.DeletedBy = userId;

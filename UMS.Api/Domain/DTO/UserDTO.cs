@@ -14,9 +14,9 @@
 
         public string? Phone { get; set; }
 
-        public byte[] PasswordHash { get; set; } = null!;
-        
-        public byte[] PasswordSalt { get; set; } = null!;
+        public string PasswordHash { get; set; } = null!;
+
+        public string PasswordSalt { get; set; } = null!;
     }
 
     public class GetUserDTO
@@ -51,7 +51,7 @@
 
     public class UserPutDTO
     {
-        public long UserId { get; set; } 
+        public long UserId { get; set; }
 
         public string? UserName { get; set; }
 
@@ -98,13 +98,13 @@
         public string Password { get; set; } = null!;
 
         public string? FirstName { get; set; }
-        
+
         public string? LastName { get; set; }
 
         public string? Email { get; set; }
 
         public string? Phone { get; set; }
-        
+
         //public byte[] PasswordHash { get; set; } = null!;
 
         //public byte[] PasswordSalt { get; set; } = null!;
@@ -122,9 +122,9 @@
 
         public string? Phone { get; set; }
 
-        public byte[] PasswordHash { get; set; } = null!;
+        public string PasswordHash { get; set; } = null!;
 
-        public byte[] PasswordSalt { get; set; } = null!;
+        public string PasswordSalt { get; set; } = null!;
 
         public long? CreatedBy { get; set; }
 
@@ -137,6 +137,7 @@
     {
         //public long UserId { get; set; }
         public string UserName { get; set; } = null!;
+
         public string? Password { get; set; }
     }
 
@@ -153,18 +154,17 @@
 
     public class AssignRolesToUserDTO
     {
-        public long UserId { get; set;}
+        public long UserId { get; set; }
         public List<long>? RoleIds { get; set; }
     }
 
-    public class RefreshTokenDTO 
+    public class RefreshTokenDTO
     {
         public string? Token { get; set; }
 
         public DateTime Created { get; set; }
 
         public DateTime Expires { get; set; }
-
     }
 
     public class ForgotPasswordDTO
@@ -188,6 +188,5 @@
     public class ResetPasswordTokenDTO
     {
         public string? Token { get; set; }
-
     }
 }

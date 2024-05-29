@@ -1,13 +1,5 @@
-﻿using Azure.Identity;
-using Data;
+﻿using Data;
 using LoggerLibrary.Interface;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration.UserSecrets;
-using System;
-using System.Data.Entity.Core;
-using System.Drawing.Printing;
-using System.Security.Cryptography;
-using System.Text;
 using UMS.Api.Domain.DTO;
 using UMS.Api.Interfaces;
 using UMS.Api.Models;
@@ -19,12 +11,14 @@ namespace UMS.Api.Repositories
         private readonly IRepository m_dbContext;
         private readonly UmsContext m_umsContext;
         private readonly ILogService m_logger;
+        private readonly IPasswordPolicyService m_passwordPolicyService;
 
-        public UsersRepository(IRepository dbContext, UmsContext umsContext, ILogService logger)
+        public UsersRepository(IRepository dbContext, UmsContext umsContext, ILogService logger, IPasswordPolicyService passwordPolicyService)
         {
             m_dbContext = dbContext;
             m_umsContext = umsContext;
             m_logger = logger;
+            m_passwordPolicyService = passwordPolicyService;
         }
 
         //Get Users for combobox
@@ -41,12 +35,11 @@ namespace UMS.Api.Repositories
                     ComboboxDTO tempUser = new()
                     {
                         Id = user.UserId,
-                        Value = user.FirstName +" "+ user.LastName,
+                        Value = user.FirstName + " " + user.LastName,
                     };
 
                     lstResult.Add(tempUser);
                 }
-
 
                 return lstResult;
             }
@@ -63,11 +56,11 @@ namespace UMS.Api.Repositories
             {
                 List<UserDTO> lstResult = new List<UserDTO>();
 
-                if (platformId != 0) 
+                if (platformId != 0)
                 {
                     var allUsersAccordingToThePlatform = ((from users in m_umsContext.Users
                                                            join userPlatform in m_umsContext.UserPlatforms on users.UserId equals userPlatform.UserId
-                                                           where (userPlatform.PlatformId == platformId && userPlatform.DeletedAt==null && users.DeletedAt==null)
+                                                           where (userPlatform.PlatformId == platformId && userPlatform.DeletedAt == null && users.DeletedAt == null)
                                                            select new UserDTO
                                                            {
                                                                UserId = users.UserId,
@@ -88,7 +81,6 @@ namespace UMS.Api.Repositories
                     {
                         lstResult = allUsersAccordingToThePlatform;
                     }
-                    
                 }
                 else
                 {
@@ -96,14 +88,14 @@ namespace UMS.Api.Repositories
 
                     if (userName != null)
                     {
-                        allUsers = m_dbContext.Get<User>().Where(q => q.DeletedAt==null && (q.FirstName.ToLower().Contains(userName.ToLower()) || q.LastName.ToLower().Contains(userName.ToLower()))).ToList();
+                        allUsers = m_dbContext.Get<User>().Where(q => q.DeletedAt == null && (q.FirstName.ToLower().Contains(userName.ToLower()) || q.LastName.ToLower().Contains(userName.ToLower()))).ToList();
                     }
                     else
                     {
                         allUsers = m_dbContext.Get<User>().Where(q => q.DeletedAt == null).ToList();
                     }
 
-                    if(allUsers.Count > 0 && allUsers != null)
+                    if (allUsers.Count > 0 && allUsers != null)
                     {
                         foreach (User user in allUsers)
                         {
@@ -121,9 +113,9 @@ namespace UMS.Api.Repositories
 
                             lstResult.Add(tempUser);
                         }
-                    }                 
-                }        
-                
+                    }
+                }
+
                 return lstResult;
             }
             catch (Exception ex)
@@ -132,21 +124,17 @@ namespace UMS.Api.Repositories
             }
         }
 
-        public void postUser(UserPostDTO user,long createdBy)
+        public void postUser(UserPostDTO user, long createdBy)
         {
             try
             {
-                if(m_umsContext.Users.Any(u=> u.UserName == user.UserName || u.Email == user.Email))
+                if (m_umsContext.Users.Any(u => u.UserName == user.UserName || u.Email == user.Email))
                 {
                     throw new Exception("Username or email already exist. Please check and change it");
                 }
 
-                //for create password hash
-                var hmac = new HMACSHA512();
-
-                byte[] PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(user.Password));
-                byte[] PasswordSalt = hmac.Key;
-
+                string PasswordSalt = m_passwordPolicyService.generateSalt();
+                string PasswordHash = m_passwordPolicyService.getPasswordHash(user.Password, PasswordSalt);
 
                 User tempUserObj = new User
                 {
@@ -164,7 +152,6 @@ namespace UMS.Api.Repositories
 
                 m_dbContext.Create(tempUserObj);
                 m_dbContext.Save();
-
             }
             catch (Exception ex)
             {
@@ -172,7 +159,7 @@ namespace UMS.Api.Repositories
             }
         }
 
-        public void updateUser(UserPutDTO user, long updatedBy) 
+        public void updateUser(UserPutDTO user, long updatedBy)
         {
             try
             {
@@ -180,7 +167,7 @@ namespace UMS.Api.Repositories
 
                 if (exsistingResult != null && exsistingResult.UserId == user.UserId)
                 {
-                    if(m_umsContext.Users.Any(u => (u.UserId != user.UserId && u.UserName == user.UserName)))
+                    if (m_umsContext.Users.Any(u => (u.UserId != user.UserId && u.UserName == user.UserName)))
                     {
                         throw new Exception("Username already exists for another user.");
                     }
@@ -189,7 +176,7 @@ namespace UMS.Api.Repositories
                         exsistingResult.UserName = user.UserName;
                         exsistingResult.FirstName = user.FirstName;
                         exsistingResult.LastName = user.LastName;
-                        //exsistingResult.PasswordHash = user.PasswordHash; 
+                        //exsistingResult.PasswordHash = user.PasswordHash;
                         exsistingResult.Email = user.Email;
                         exsistingResult.Phone = user.Phone;
                         exsistingResult.UpdatedAt = DateTime.Now;
@@ -198,16 +185,15 @@ namespace UMS.Api.Repositories
                         if (!string.IsNullOrEmpty(user.Password))
                         {
                             // Update password only if a new password is provided
-                            var hmac = new HMACSHA512();
-                            exsistingResult.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(user.Password));
-                            exsistingResult.PasswordSalt = hmac.Key;
+                            string PasswordSalt = m_passwordPolicyService.generateSalt();
+                            string PasswordHash = m_passwordPolicyService.getPasswordHash(user.Password, PasswordSalt);
                         }
 
                         m_dbContext.Update(exsistingResult);
                         m_dbContext.Save();
                     }
                 }
-                else 
+                else
                 {
                     throw new Exception("User Not found");
                 }
@@ -251,53 +237,53 @@ namespace UMS.Api.Repositories
 
                 //Gives Roles Which have not been assigned to platforms
                 var UserPlatformsAndRoles3 = ((from user in m_umsContext.Users
-                                                  join userRole in m_umsContext.UserRoles on user.UserId equals userRole.UserId
-                                                  join role in m_umsContext.Roles on userRole.RoleId equals role.RoleId
-                                                  where user.UserId == userId && role.PlatformId==null
-                                                    && user.DeletedAt == null
-                                                    && role.DeletedAt == null
-                                                    && role.Status == true
-                                                    && userRole.DeletedAt == null
-                                                  select new UserPlatformsAndRolesDTO
-                                                  {
-                                                      RoleId = userRole.RoleId,
-                                                      RoleName = role.Role1
-                                                  }).ToList());
+                                               join userRole in m_umsContext.UserRoles on user.UserId equals userRole.UserId
+                                               join role in m_umsContext.Roles on userRole.RoleId equals role.RoleId
+                                               where user.UserId == userId && role.PlatformId == null
+                                                 && user.DeletedAt == null
+                                                 && role.DeletedAt == null
+                                                 && role.Status == true
+                                                 && userRole.DeletedAt == null
+                                               select new UserPlatformsAndRolesDTO
+                                               {
+                                                   RoleId = userRole.RoleId,
+                                                   RoleName = role.Role1
+                                               }).ToList());
 
-                    //Gives Roles Which have been assigned to platforms
-                    var UserPlatformsAndRoles1 = ((from user in m_umsContext.Users
-                                                  join userRole in m_umsContext.UserRoles on user.UserId equals userRole.UserId
-                                                  join role in m_umsContext.Roles on userRole.RoleId equals role.RoleId
-                                                  join platform in m_umsContext.Platforms on role.PlatformId equals platform.PlatformId
-                                                   where user.UserId == userId
-                                                    && user.DeletedAt == null
-                                                    && role.DeletedAt == null
-                                                    && role.Status == true
-                                                    && platform.DeletedAt == null
-                                                    && userRole.DeletedAt == null
-                                                  select new UserPlatformsAndRolesDTO
-                                                  {
-                                                      RoleId = userRole.RoleId,
-                                                      RoleName = role.Role1,
-                                                      PlatformId = role.PlatformId,
-                                                      PlatformName = platform.PlatformName,
-                                                  }).ToList());
+                //Gives Roles Which have been assigned to platforms
+                var UserPlatformsAndRoles1 = ((from user in m_umsContext.Users
+                                               join userRole in m_umsContext.UserRoles on user.UserId equals userRole.UserId
+                                               join role in m_umsContext.Roles on userRole.RoleId equals role.RoleId
+                                               join platform in m_umsContext.Platforms on role.PlatformId equals platform.PlatformId
+                                               where user.UserId == userId
+                                                && user.DeletedAt == null
+                                                && role.DeletedAt == null
+                                                && role.Status == true
+                                                && platform.DeletedAt == null
+                                                && userRole.DeletedAt == null
+                                               select new UserPlatformsAndRolesDTO
+                                               {
+                                                   RoleId = userRole.RoleId,
+                                                   RoleName = role.Role1,
+                                                   PlatformId = role.PlatformId,
+                                                   PlatformName = platform.PlatformName,
+                                               }).ToList());
 
                 //Gives Platforms Which don't have roles
                 var UserPlatformsAndRoles2 = ((from user in m_umsContext.Users
-                                                   join userPlatform in m_umsContext.UserPlatforms on user.UserId equals userPlatform.UserId
-                                                   join platform in m_umsContext.Platforms on userPlatform.PlatformId equals platform.PlatformId
-                                                   where user.UserId == userId
-                                                    && user.DeletedAt == null
-                                                    && platform.DeletedAt == null
-                                                    && userPlatform.DeletedAt == null
-                                                   select new UserPlatformsAndRolesDTO
-                                                   {
-                                                       PlatformId = userPlatform.PlatformId,
-                                                       PlatformName = platform.PlatformName,
-                                                   }).ToList());
-                    var platformIdsToRemove = UserPlatformsAndRoles1.Select(x => x.PlatformId).ToHashSet();
-                    UserPlatformsAndRoles2 = UserPlatformsAndRoles2.Where(x => !platformIdsToRemove.Contains(x.PlatformId)).ToList();
+                                               join userPlatform in m_umsContext.UserPlatforms on user.UserId equals userPlatform.UserId
+                                               join platform in m_umsContext.Platforms on userPlatform.PlatformId equals platform.PlatformId
+                                               where user.UserId == userId
+                                                && user.DeletedAt == null
+                                                && platform.DeletedAt == null
+                                                && userPlatform.DeletedAt == null
+                                               select new UserPlatformsAndRolesDTO
+                                               {
+                                                   PlatformId = userPlatform.PlatformId,
+                                                   PlatformName = platform.PlatformName,
+                                               }).ToList());
+                var platformIdsToRemove = UserPlatformsAndRoles1.Select(x => x.PlatformId).ToHashSet();
+                UserPlatformsAndRoles2 = UserPlatformsAndRoles2.Where(x => !platformIdsToRemove.Contains(x.PlatformId)).ToList();
 
                 UserPlatformsAndRoles = UserPlatformsAndRoles1.Union(UserPlatformsAndRoles2).Union(UserPlatformsAndRoles3).ToList();
 
@@ -311,13 +297,13 @@ namespace UMS.Api.Repositories
 
         //Post Bulk Users
 
-        public void postBulkUsers(List<UserPostDTO> users, List<BulkRoleAssignDTO> userRoles,  long createdBy)
+        public void postBulkUsers(List<UserPostDTO> users, List<BulkRoleAssignDTO> userRoles, long createdBy)
         {
             using (var transaction = m_dbContext.CreateTransAction())
             {
                 try
                 {
-                    //Post Users 
+                    //Post Users
                     if (users.Count > 0 && users != null)
                     {
                         foreach (UserPostDTO user in users)
@@ -329,7 +315,7 @@ namespace UMS.Api.Repositories
                                 User tempUser = new()
                                 {
                                     UserName = user.UserName,
-                                   // Password = user.Password,
+                                    // Password = user.Password,
                                     FirstName = user.FirstName,
                                     LastName = user.LastName,
                                     Email = user.Email,
@@ -346,7 +332,7 @@ namespace UMS.Api.Repositories
                                 transaction.Rollback();
                                 m_logger.Log("Duplicate usernames detected. Please choose a unique username for each user and try again.");
                                 throw new Exception("Duplicate usernames detected. Please choose a unique username for each user and try again.");
-                            }                           
+                            }
                         }
                         m_dbContext.Save();
 
@@ -355,9 +341,9 @@ namespace UMS.Api.Repositories
                         {
                             foreach (BulkRoleAssignDTO userRole in userRoles)
                             {
-                                List<User> tempUserToAssign = m_dbContext.Get<User>().Where(q=> q.UserName==userRole.UserName && q.DeletedAt==null).ToList();
+                                List<User> tempUserToAssign = m_dbContext.Get<User>().Where(q => q.UserName == userRole.UserName && q.DeletedAt == null).ToList();
 
-                                if(tempUserToAssign.Count > 1)
+                                if (tempUserToAssign.Count > 1)
                                 {
                                     transaction.Rollback();
                                     m_logger.Log("Duplicate usernames detected. Please choose a unique username for each user and try again.");
@@ -380,7 +366,7 @@ namespace UMS.Api.Repositories
                                     };
                                     m_dbContext.Create(tempUserRole);
 
-                                   Role tempRole = m_dbContext.Get<Role>().Where(q => q.RoleId == userRole.RoleId && q.DeletedAt == null).ToList()[0];
+                                    Role tempRole = m_dbContext.Get<Role>().Where(q => q.RoleId == userRole.RoleId && q.DeletedAt == null).ToList()[0];
                                     var platformId = tempRole.PlatformId;
 
                                     if (platformId != null)
@@ -393,8 +379,8 @@ namespace UMS.Api.Repositories
                                             CreatedBy = createdBy,
                                         };
                                         m_dbContext.Create(tempUserPlatform);
-                                    }                      
-                                }                               
+                                    }
+                                }
                             }
                             m_dbContext.Save();
                         }
@@ -406,8 +392,7 @@ namespace UMS.Api.Repositories
                         transaction.Rollback();
                         m_logger.Log("No users to post");
                         throw new Exception("No users to post");
-                        
-                    }                 
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -426,7 +411,6 @@ namespace UMS.Api.Repositories
 
                 if (searchedUserName != null)
                 {
-
                     lstResult = (from users in m_umsContext.Users
                                  where (users.UserName.ToLower().Contains(searchedUserName.ToLower()) || users.FirstName.ToLower().Contains(searchedUserName.ToLower()) || users.LastName.ToLower().Contains(searchedUserName.ToLower())) && users.DeletedAt == null && !m_umsContext.UserPlatforms.Any(up => up.UserId == users.UserId && up.PlatformId == platformId && up.DeletedAt == null)
                                  select new PlatformUsersDTO
@@ -437,15 +421,13 @@ namespace UMS.Api.Repositories
                                      LastName = users.LastName,
                                      PhoneNumber = users.Phone,
                                      Email = users.Email,
-                                    // PlatformId = userGroup.PlatformId
+                                     // PlatformId = userGroup.PlatformId
                                  }).ToList();
-                   
                 }
-                    
                 else
                 {
                     lstResult = (from users in m_umsContext.Users
-                                 where users.DeletedAt == null && !m_umsContext.UserPlatforms.Any(up=> up.UserId == users.UserId && up.PlatformId == platformId && up.DeletedAt == null)
+                                 where users.DeletedAt == null && !m_umsContext.UserPlatforms.Any(up => up.UserId == users.UserId && up.PlatformId == platformId && up.DeletedAt == null)
                                  select new PlatformUsersDTO
                                  {
                                      UserId = users.UserId,
@@ -477,8 +459,8 @@ namespace UMS.Api.Repositories
                                         join userRoles in m_umsContext.UserRoles on user.UserId equals userRoles.UserId
                                         join roles in m_umsContext.Roles on userRoles.RoleId equals roles.RoleId
                                         join rolePermissions in m_umsContext.RolePermissions on roles.RoleId equals rolePermissions.RoleId
-                                        join permissions in m_umsContext.Permissions on rolePermissions.PermissionId equals permissions.PermissionId 
-                                        where (user.DeletedAt == null && userRoles.DeletedAt == null && roles.DeletedAt == null && roles.Status ==true && rolePermissions.DeletedAt == null && user.UserId == userId && roles.PlatformId == platformId)
+                                        join permissions in m_umsContext.Permissions on rolePermissions.PermissionId equals permissions.PermissionId
+                                        where (user.DeletedAt == null && userRoles.DeletedAt == null && roles.DeletedAt == null && roles.Status == true && rolePermissions.DeletedAt == null && user.UserId == userId && roles.PlatformId == platformId)
 
                                         select new UserRolesAndPermissionsDTO
                                         {
@@ -486,7 +468,6 @@ namespace UMS.Api.Repositories
                                             RoleName = roles.Role1,
                                             PermissionId = rolePermissions.PermissionId,
                                             Permission = permissions.Permission1
-
                                         }).ToList();
 
                 //Get roles that do not have permissions
@@ -498,9 +479,7 @@ namespace UMS.Api.Repositories
                                           {
                                               RoleId = roles.RoleId,
                                               RoleName = roles.Role1,
-
                                           }).ToList();
-
 
                 var roleIdToRemove = rolesPermissions.Select(x => x.RoleId).ToHashSet();
                 rolesNotPermisions = rolesNotPermisions.Where(x => !roleIdToRemove.Contains(x.RoleId)).ToList();
@@ -560,7 +539,7 @@ namespace UMS.Api.Repositories
         //To check roles and user in the same platform
         private bool checkUserRolesInSamePlatform(long userId, List<long> roles)
         {
-            if(roles.Any())
+            if (roles.Any())
             {
                 var userRoles = from role in m_umsContext.Roles
                                 join userPlatform in m_umsContext.UserPlatforms on role.PlatformId equals userPlatform.PlatformId
@@ -575,7 +554,7 @@ namespace UMS.Api.Repositories
             }
         }
 
-        public void unassignRoles(long userId,long roleId, long deletedBy)
+        public void unassignRoles(long userId, long roleId, long deletedBy)
         {
             try
             {
@@ -606,7 +585,7 @@ namespace UMS.Api.Repositories
             {
                 User? user = m_umsContext.Users.FirstOrDefault(ur => ur.UserId == userId && ur.DeletedAt == null);
 
-                if(user != null)
+                if (user != null)
                 {
                     GetUserDTO tempUser = new()
                     {
@@ -623,7 +602,6 @@ namespace UMS.Api.Repositories
                 {
                     throw new Exception("User Id not found");
                 }
-               
             }
             catch (Exception ex)
             {

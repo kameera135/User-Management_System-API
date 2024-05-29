@@ -12,9 +12,9 @@ public partial class User
 
     public string? EmployeeId { get; set; }
 
-    public byte[] PasswordHash { get; set; } = null!;
+    public string PasswordHash { get; set; } = null!;
 
-    public byte[] PasswordSalt { get; set; } = null!;
+    public string PasswordSalt { get; set; } = null!;
 
     public string? FirstName { get; set; }
 
