@@ -4,6 +4,8 @@
     {
         void updatePasswordPolicy(string passwordPolicy, long UpdatedBy);
 
-        string getPasswordHash(string password);
+        string getPasswordHash(string password, string salt);
+
+        string generateSalt();
     }
 }

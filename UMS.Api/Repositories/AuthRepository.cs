@@ -363,13 +363,16 @@ namespace UMS.Api.Repositories
 
                 User exsistingResult = m_dbContext.GetById<User>(user.UserId);
 
-                exsistingResult.PasswordSalt = m_passwordPolicyService.generateSalt();
-                exsistingResult.PasswordHash = m_passwordPolicyService.getPasswordHash(resetPassword.Password, exsistingResult.PasswordSalt);
-                exsistingResult.UpdatedAt = DateTime.Now;
-                exsistingResult.UpdatedBy = user.UserId;
+                if (resetPassword != null && resetPassword.Password != null)
+                {
+                    exsistingResult.PasswordSalt = m_passwordPolicyService.generateSalt();
+                    exsistingResult.PasswordHash = m_passwordPolicyService.getPasswordHash(resetPassword.Password, exsistingResult.PasswordSalt);
+                    exsistingResult.UpdatedAt = DateTime.Now;
+                    exsistingResult.UpdatedBy = user.UserId;
 
-                m_dbContext.Update(exsistingResult);
-                m_dbContext.Save();
+                    m_dbContext.Update(exsistingResult);
+                    m_dbContext.Save();
+                }
 
                 return Task.FromResult(IdentityResult.Success);
             }

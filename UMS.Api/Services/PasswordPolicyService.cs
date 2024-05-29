@@ -32,13 +32,13 @@ namespace UMS.Api.Services
             string combinedPassword = MD5(salt) + password;
 
             // Choose the hash algorithm (SHA-256 or SHA-512)
-            using (var sha256 = SHA512.Create())
+            using (var sha512 = SHA512.Create())
             {
                 // Convert the combined password string to a byte array
                 byte[] bytes = Encoding.UTF8.GetBytes(combinedPassword);
 
                 // Compute the hash value of the byte array
-                byte[] hash = sha256.ComputeHash(bytes);
+                byte[] hash = sha512.ComputeHash(bytes);
 
                 // Convert the byte array to a hexadecimal string
                 StringBuilder result = new StringBuilder();

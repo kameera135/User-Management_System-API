@@ -43,7 +43,6 @@ builder.Services.AddSwaggerGen(options =>
         Type = SecuritySchemeType.ApiKey
     });
     options.OperationFilter<SecurityRequirementsOperationFilter>();
-
 });
 
 //Add Auto mapper
@@ -59,7 +58,6 @@ builder.Services.AddDbContext<ConfigContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ConfigDB"));
 });
 
-
 //Add emailDB service
 builder.Services.AddDbContext<EmailDbContext>(opts =>
 {
@@ -72,8 +70,6 @@ builder.Services.AddScoped<ICommonConfigRepository, CommonConfigRepository>();
 
 builder.Services.AddSingleton<ILogService, LogService>();
 builder.Services.AddSingleton<ILicense, LicenseService>();
-///builder.Services.AddSingleton<IEmailService, EmailRepository>();
-
 
 builder.Services.AddScoped<IActivityLogsRepository, ActivityLogsRepository>();
 builder.Services.AddScoped<IActivityLogsService, ActivityLogsService>();
@@ -93,22 +89,11 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IRepository, Repository<UmsContext>>();
 builder.Services.AddScoped<IEmailService, EmailRepository>();
 
-//service for authentication
-//Install-Package Microsoft.AspNetCore.Authentication.JwtBearer
-
-/*builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
-builder.Configuration.Bind("JwtSettings", options))
-    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options => 
-          builder.Configuration.Bind("CookieSettings", options));*/
-var emailConfig = builder.Configuration
-    .GetSection("EmailConfiguration")
-    .Get<EmailConfigurationDTO>();
-builder.Services.AddSingleton(emailConfig);
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<UserRolePlatformService>();
 
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>{
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+{
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
@@ -140,7 +125,7 @@ var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
-            c.SwaggerEndpoint("/swagger/v1/swagger.json", "UMS API V1"));
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "UMS API V1.0"));
 
 app.UseHttpsRedirection();
 

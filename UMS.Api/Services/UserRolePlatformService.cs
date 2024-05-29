@@ -6,29 +6,20 @@ namespace UMS.Api.Services
 {
     public class UserRolePlatformService : IUserRolePlatformService
     {
-        private readonly IRepository m_dbContext;
         private readonly UmsContext m_umsContext;
+        private readonly IConfiguration m_configuration;
 
-        public UserRolePlatformService(IRepository dbContext, UmsContext umsContext)
+        public UserRolePlatformService(UmsContext umsContext, IConfiguration configuration)
         {
-            m_dbContext = dbContext;
             m_umsContext = umsContext;
+            m_configuration = configuration;
         }
-
 
         public long GetPlatformId()
         {
-            Platform? platform = m_umsContext.Platforms.FirstOrDefault(u => u.PlatformName.Replace(" ", "").ToLower() == "usermanagementsystem".ToLower());
+            var platform = m_configuration.GetValue<long>("PlatformID");
 
-            if(platform != null)
-            {
-                return platform?.PlatformId ?? 0;
-            }
-            else
-            {
-                throw new Exception("Platform not found");
-            }
-
+            return platform;
         }
 
         public long GetRoleId(long userId)
