@@ -29,7 +29,7 @@ namespace UMS.Api.Services
         public string getPasswordHash(string password, string salt)
         {
             // Combine the password and salt
-            string combinedPassword = MD5(salt) + password;
+            string combinedPassword = password;
 
             // Choose the hash algorithm (SHA-256 or SHA-512)
             using (var sha512 = SHA512.Create())
