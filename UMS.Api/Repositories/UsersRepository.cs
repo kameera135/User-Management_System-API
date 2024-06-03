@@ -185,8 +185,9 @@ namespace UMS.Api.Repositories
                         if (!string.IsNullOrEmpty(user.Password))
                         {
                             // Update password only if a new password is provided
-                            string PasswordSalt = m_passwordPolicyService.generateSalt();
-                            string PasswordHash = m_passwordPolicyService.getPasswordHash(user.Password, PasswordSalt);
+                            exsistingResult.PasswordSalt = m_passwordPolicyService.generateSalt();
+                            exsistingResult.PasswordHash = m_passwordPolicyService.getPasswordHash(user.Password, exsistingResult.PasswordSalt);
+
                         }
 
                         m_dbContext.Update(exsistingResult);
