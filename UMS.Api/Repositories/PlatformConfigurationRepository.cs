@@ -17,7 +17,7 @@ namespace UMS.Api.Repositories
         }
 
         public List<ComboboxDTO> getPlatformList()
-        {         
+        {
             try
             {
                 List<Platform> platforms = m_dbContext.Get<Platform>().Where(q => q.DeletedAt == null).ToList();
@@ -34,7 +34,6 @@ namespace UMS.Api.Repositories
 
                     lstResult.Add(tempPlatform);
                 }
-
 
                 return lstResult;
             }
@@ -75,7 +74,6 @@ namespace UMS.Api.Repositories
                     lstResult.Add(tempPlatform);
                 }
 
-
                 return lstResult;
             }
             catch (Exception ex)
@@ -94,13 +92,13 @@ namespace UMS.Api.Repositories
                     PlatformName = platform.PlatformName,
                     PlatformUrl = platform.PlatformUrl,
                     Description = platform.Description,
+                    ExternalLink = platform.ExternalLink,
                     CreatedAt = DateTime.Now,
                     CreatedBy = createdBy,
                 };
 
                 m_dbContext.Create(tempPlatformObj);
                 m_dbContext.Save();
-
             }
             catch (Exception ex)
             {
@@ -176,13 +174,11 @@ namespace UMS.Api.Repositories
                                                   {
                                                       PlatformId = platforms.PlatformId,
                                                       PlatformName = platforms.PlatformName,
-
                                                   }).ToList());
 
                 lstResult = rolesAccordingToPlatforms.ToList();
 
                 return lstResult;
-
             }
             catch (Exception ex)
             {
@@ -196,7 +192,7 @@ namespace UMS.Api.Repositories
             {
                 List<PlatformUsersDTO> lstResult = new List<PlatformUsersDTO>();
 
-                if(searchedUserName != null)
+                if (searchedUserName != null)
                 {
                     lstResult = (from users in m_umsContext.Users
                                  join userPlatform in m_umsContext.UserPlatforms on users.UserId equals userPlatform.UserId
@@ -212,7 +208,6 @@ namespace UMS.Api.Repositories
                                      Email = users.Email,
                                      PlatformId = platform.PlatformId,
                                      PlatformName = platform.PlatformName
-
                                  }).ToList();
                 }
                 else
@@ -228,10 +223,9 @@ namespace UMS.Api.Repositories
                                      FirstName = users.FirstName,
                                      LastName = users.LastName,
                                      PhoneNumber = users.Phone,
-                                     Email= users.Email,
+                                     Email = users.Email,
                                      PlatformId = platform.PlatformId,
                                      PlatformName = platform.PlatformName
-
                                  }).ToList();
                 }
 
@@ -247,13 +241,13 @@ namespace UMS.Api.Repositories
         {
             try
             {
-                Platform? platform = m_umsContext.Platforms.FirstOrDefault(p=>p.PlatformId == user.PlatformId);
+                Platform? platform = m_umsContext.Platforms.FirstOrDefault(p => p.PlatformId == user.PlatformId);
 
                 if (platform != null)
                 {
                     foreach (long userId in user.UserIds)
                     {
-                        User? tempUser = m_umsContext.Users.FirstOrDefault(u=>u.UserId == userId);
+                        User? tempUser = m_umsContext.Users.FirstOrDefault(u => u.UserId == userId);
 
                         if (tempUser != null)
                         {
@@ -281,14 +275,12 @@ namespace UMS.Api.Repositories
                                 existingUserPlatform.DeletedAt = null;
                                 existingUserPlatform.DeletedBy = null;
                                 m_dbContext.Update(existingUserPlatform);
-
                             }
                         }
                         else
                         {
                             throw new Exception("User not found");
                         }
-
                     }
                     m_dbContext.Save();
                 }
@@ -307,7 +299,7 @@ namespace UMS.Api.Repositories
         {
             try
             {
-                Platform? plaform = m_umsContext.Platforms.FirstOrDefault(p=>p.PlatformId == user.PlatformId);
+                Platform? plaform = m_umsContext.Platforms.FirstOrDefault(p => p.PlatformId == user.PlatformId);
 
                 if (plaform != null)
                 {
@@ -315,7 +307,7 @@ namespace UMS.Api.Repositories
                     {
                         User? tempUser = m_umsContext.Users.FirstOrDefault(u => u.UserId == userId);
 
-                        if(tempUser != null)
+                        if (tempUser != null)
                         {
                             UserPlatform? userPlatform = m_umsContext.UserPlatforms.FirstOrDefault(up => up.UserId == userId && up.PlatformId == user.PlatformId);
 
@@ -343,7 +335,7 @@ namespace UMS.Api.Repositories
                     throw new Exception("There are one or more platforms not in the platform list.");
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }

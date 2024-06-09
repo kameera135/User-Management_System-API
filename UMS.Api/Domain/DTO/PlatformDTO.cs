@@ -11,6 +11,8 @@
         public string? Description { get; set; }
 
         public string? PlatformUrl { get; set; }
+
+        public bool? ExternalLink { get; set; }
     }
 
     public class PlatformPostDTO
@@ -22,6 +24,8 @@
         public string? PlatformUrl { get; set; }
 
         public string? Description { get; set; }
+
+        public bool? ExternalLink { get; set; }
     }
 
     public class PlatformPutDTO
@@ -35,6 +39,8 @@
         public string? PlatformUrl { get; set; }
 
         public string? Description { get; set; }
+
+        public bool? ExternalLink { get; set; }
     }
 
     public class ComboboxDTO
@@ -48,7 +54,6 @@
     {
         public long PlatformId { get; set; }
         public string PlatformName { get; set; } = null!;
-
     }
 
     public class PlatformUsersDTO

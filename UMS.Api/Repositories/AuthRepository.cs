@@ -150,13 +150,17 @@ namespace UMS.Api.Repositories
                                                 PlatformID = p.PlatformId,
                                                 PlatformName = p.PlatformName,
                                                 PlatformURL = p.PlatformUrl,
+                                                ExternalLink = p.ExternalLink,
                                             };
 
                         if (userPlatforms.Any())
                         {
                             foreach (var pl in userPlatforms)
                             {
-                                claims.Add(new Claim("platforms", pl.PlatformName + " || " + pl.PlatformURL + " || " + pl.PlatformID));
+                                string PlatformAuthLink = pl.PlatformURL + "/login?session=" + sessionToken + "&platformId=" + pl.PlatformID;
+                                if (pl.ExternalLink.GetValueOrDefault(false)) PlatformAuthLink = pl.PlatformURL;
+
+                                claims.Add(new Claim("platforms", pl.PlatformName + " || " + pl.PlatformURL + " || " + pl.PlatformID + " || " + PlatformAuthLink));
                             }
                         }
 
