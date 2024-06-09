@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace UMS.Api.Models;
@@ -8,7 +7,7 @@ public partial class User
 {
     public long UserId { get; set; }
 
-    public string? UserName { get; set; } = null!;
+    public string UserName { get; set; } = null!;
 
     public string? EmployeeId { get; set; }
 
@@ -26,7 +25,7 @@ public partial class User
 
     public string FirstLogin { get; set; } = null!;
 
-    public bool? _2FA_authenticate { get; set; }
+    public bool _2faAuthenticate { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 

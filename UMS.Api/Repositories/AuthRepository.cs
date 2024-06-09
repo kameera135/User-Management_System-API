@@ -186,7 +186,7 @@ namespace UMS.Api.Repositories
                             var userPermissions = from ur in m_umsContext.UserRoles
                                                   join rp in m_umsContext.RolePermissions on ur.RoleId equals rp.RoleId
                                                   join p in m_umsContext.Permissions on rp.PermissionId equals p.PermissionId
-                                                  where ur.UserId == userId && p.DeletedAt == null && rp.DeletedAt == null && ur.DeletedAt == null && p.PlatformId == platformId && p.Status == true && p.Is_licence == true
+                                                  where ur.UserId == userId && p.DeletedAt == null && rp.DeletedAt == null && ur.DeletedAt == null && p.PlatformId == platformId && p.Status == true && p.IsLicence == true
                                                   select new
                                                   {
                                                       PermissionName = p.Permission1
@@ -208,7 +208,7 @@ namespace UMS.Api.Repositories
                             var userPermissions = from ur in m_umsContext.UserRoles
                                                   join rp in m_umsContext.RolePermissions on ur.RoleId equals rp.RoleId
                                                   join p in m_umsContext.Permissions on rp.PermissionId equals p.PermissionId
-                                                  where ur.UserId == userId && p.DeletedAt == null && rp.DeletedAt == null && ur.DeletedAt == null && p.PlatformId == platformId && p.Status == true && p.Is_licence == false
+                                                  where ur.UserId == userId && p.DeletedAt == null && rp.DeletedAt == null && ur.DeletedAt == null && p.PlatformId == platformId && p.Status == true && p.IsLicence == false
                                                   select new
                                                   {
                                                       PermissionName = p.Permission1

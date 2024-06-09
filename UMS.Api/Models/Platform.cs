@@ -9,11 +9,13 @@ public partial class Platform
 
     public string PlatformName { get; set; } = null!;
 
-    public string? PlatformCode { get; set; } 
+    public string? PlatformCode { get; set; }
 
     public string? PlatformUrl { get; set; }
 
     public string? Description { get; set; }
+
+    public bool ExternalLink { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 

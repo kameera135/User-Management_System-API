@@ -13,7 +13,7 @@ public partial class Permission
 
     public bool? Status { get; set; }
 
-    public bool? Is_licence { get; set; }
+    public bool? IsLicence { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 
