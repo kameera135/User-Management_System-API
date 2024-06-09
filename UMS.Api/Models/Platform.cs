@@ -15,7 +15,7 @@ public partial class Platform
 
     public string? Description { get; set; }
 
-    public bool ExternalLink { get; set; }
+    public bool? ExternalLink { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 

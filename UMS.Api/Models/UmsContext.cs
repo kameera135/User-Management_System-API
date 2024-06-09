@@ -54,16 +54,16 @@ public partial class UmsContext : DbContext
 
             entity.HasOne(d => d.Platform).WithMany(p => p.ActivityLogs)
                 .HasForeignKey(d => d.PlatformId)
-                .HasConstraintName("FK__ActivityL__Platf__2CBDA3B5");
+                .HasConstraintName("FK__ActivityL__Platf__0E8E2250");
 
             entity.HasOne(d => d.Role).WithMany(p => p.ActivityLogs)
                 .HasForeignKey(d => d.RoleId)
-                .HasConstraintName("FK__ActivityL__RoleI__2DB1C7EE");
+                .HasConstraintName("FK__ActivityL__RoleI__0F824689");
 
             entity.HasOne(d => d.User).WithMany(p => p.ActivityLogs)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ActivityL__UserI__2BC97F7C");
+                .HasConstraintName("FK__ActivityL__UserI__0D99FE17");
         });
 
         modelBuilder.Entity<Apitoken>(entity =>
@@ -93,7 +93,7 @@ public partial class UmsContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.AuthTokens)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__AuthToken__UserI__2AD55B43");
+                .HasConstraintName("FK__AuthToken__UserI__0CA5D9DE");
         });
 
         modelBuilder.Entity<Permission>(entity =>
@@ -101,22 +101,18 @@ public partial class UmsContext : DbContext
             entity.Property(e => e.PermissionId).HasColumnName("PermissionID");
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.DeletedAt).HasColumnType("datetime");
-            entity.Property(e => e.IsLicence)
-                .HasDefaultValueSql("((1))")
-                .HasColumnName("Is_licence");
+            entity.Property(e => e.IsLicence).HasDefaultValueSql("((1))");
             entity.Property(e => e.Permission1)
                 .HasMaxLength(100)
                 .HasColumnName("Permission");
             entity.Property(e => e.PlatformId).HasColumnName("PlatformID");
-            entity.Property(e => e.Status)
-                .IsRequired()
-                .HasDefaultValueSql("((1))");
+            entity.Property(e => e.Status).HasDefaultValueSql("((1))");
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
 
             entity.HasOne(d => d.Platform).WithMany(p => p.Permissions)
                 .HasForeignKey(d => d.PlatformId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Permissio__Platf__29E1370A");
+                .HasConstraintName("FK__Permissio__Platf__0BB1B5A5");
         });
 
         modelBuilder.Entity<Platform>(entity =>
@@ -125,6 +121,7 @@ public partial class UmsContext : DbContext
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.DeletedAt).HasColumnType("datetime");
             entity.Property(e => e.Description).HasMaxLength(150);
+            entity.Property(e => e.ExternalLink).HasDefaultValueSql("((0))");
             entity.Property(e => e.PlatformCode).HasMaxLength(100);
             entity.Property(e => e.PlatformName).HasMaxLength(100);
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
@@ -139,14 +136,12 @@ public partial class UmsContext : DbContext
             entity.Property(e => e.Role1)
                 .HasMaxLength(100)
                 .HasColumnName("Role");
-            entity.Property(e => e.Status)
-                .IsRequired()
-                .HasDefaultValueSql("((1))");
+            entity.Property(e => e.Status).HasDefaultValueSql("((1))");
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
 
             entity.HasOne(d => d.Platform).WithMany(p => p.Roles)
                 .HasForeignKey(d => d.PlatformId)
-                .HasConstraintName("FK__Roles__PlatformI__28ED12D1");
+                .HasConstraintName("FK__Roles__PlatformI__0ABD916C");
         });
 
         modelBuilder.Entity<RolePermission>(entity =>
@@ -160,12 +155,12 @@ public partial class UmsContext : DbContext
             entity.HasOne(d => d.Permission).WithMany(p => p.RolePermissions)
                 .HasForeignKey(d => d.PermissionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__RolePermi__Permi__336AA144");
+                .HasConstraintName("FK__RolePermi__Permi__153B1FDF");
 
             entity.HasOne(d => d.Role).WithMany(p => p.RolePermissions)
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__RolePermi__RoleI__32767D0B");
+                .HasConstraintName("FK__RolePermi__RoleI__1446FBA6");
         });
 
         modelBuilder.Entity<User>(entity =>
@@ -185,7 +180,6 @@ public partial class UmsContext : DbContext
             entity.Property(e => e.Phone).HasMaxLength(100);
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
             entity.Property(e => e.UserName).HasMaxLength(100);
-            entity.Property(e => e._2faAuthenticate).HasColumnName("_2FA_authenticate");
         });
 
         modelBuilder.Entity<UserPlatform>(entity =>
@@ -199,12 +193,12 @@ public partial class UmsContext : DbContext
             entity.HasOne(d => d.Platform).WithMany(p => p.UserPlatforms)
                 .HasForeignKey(d => d.PlatformId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__UserPlatf__Platf__2F9A1060");
+                .HasConstraintName("FK__UserPlatf__Platf__116A8EFB");
 
             entity.HasOne(d => d.User).WithMany(p => p.UserPlatforms)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__UserPlatf__UserI__2EA5EC27");
+                .HasConstraintName("FK__UserPlatf__UserI__10766AC2");
         });
 
         modelBuilder.Entity<UserRole>(entity =>
@@ -218,12 +212,12 @@ public partial class UmsContext : DbContext
             entity.HasOne(d => d.Role).WithMany(p => p.UserRoles)
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__UserRoles__RoleI__318258D2");
+                .HasConstraintName("FK__UserRoles__RoleI__1352D76D");
 
             entity.HasOne(d => d.User).WithMany(p => p.UserRoles)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__UserRoles__UserI__308E3499");
+                .HasConstraintName("FK__UserRoles__UserI__125EB334");
         });
 
         OnModelCreatingPartial(modelBuilder);
