@@ -1,5 +1,5 @@
-﻿using CommonInsfrastructure.Interfaces;
-using CommonInsfrastructure.Models.EmailModels;
+﻿using EmailLibrary.Interfaces;
+using EmailLibrary.Models.EmailModels;
 using MailKit.Net.Smtp;
 using MimeKit;
 using UMS.Api.Domain.DTO;

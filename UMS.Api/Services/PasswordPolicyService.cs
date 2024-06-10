@@ -1,5 +1,4 @@
-﻿using CommonInsfrastructure.Interfaces;
-using System.Text;
+﻿using System.Text;
 using System.Security.Cryptography;
 using UMS.Api.Interfaces;
 
@@ -7,18 +6,18 @@ namespace UMS.Api.Services
 {
     public class PasswordPolicyService : IPasswordPolicyService
     {
-        private readonly ICommonConfigRepository m_commonConfigRepository;
+        //private readonly ICommonConfigRepository m_commonConfigRepository;
 
-        public PasswordPolicyService(ICommonConfigRepository commonConfigRepository)
+        public PasswordPolicyService()
         {
-            m_commonConfigRepository = commonConfigRepository;
+            //m_commonConfigRepository = commonConfigRepository;
         }
 
         public void updatePasswordPolicy(string passwordPolicy, long UpdatedBy)
         {
             try
             {
-                m_commonConfigRepository.PutCommonSettingData("UMS_PP", passwordPolicy, UpdatedBy);
+                //m_commonConfigRepository.PutCommonSettingData("UMS_PP", passwordPolicy, UpdatedBy);
             }
             catch (Exception ex)
             {
@@ -29,7 +28,7 @@ namespace UMS.Api.Services
         public string getPasswordHash(string password, string salt)
         {
             // Combine the password and salt
-            string combinedPassword = password;
+            string combinedPassword = MD5(salt) + password;
 
             // Choose the hash algorithm (SHA-256 or SHA-512)
             using (var sha512 = SHA512.Create())

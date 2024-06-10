@@ -1,8 +1,7 @@
-using CommonInsfrastructure.Interfaces;
-using CommonInsfrastructure.Models.ConfigurationModels;
-using CommonInsfrastructure.Models.EmailModels;
-using CommonInsfrastructure.Repositories;
 using Data;
+using EmailLibrary.Interfaces;
+using EmailLibrary.Models.EmailModels;
+using EmailLibrary.Repositories;
 using LicenseLibrary;
 using LoggerLibrary.Interface;
 using LoggerLibrary.Repository;
@@ -13,7 +12,6 @@ using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
-using UMS.Api.Domain.DTO;
 using UMS.Api.Interfaces;
 using UMS.Api.Models;
 using UMS.Api.Repositories;
@@ -52,21 +50,11 @@ builder.Services.AddAutoMapper(typeof(Program).Assembly);
 builder.Services.AddDbContextFactory<UmsContext>(opts =>
 opts.UseSqlServer(builder.Configuration.GetConnectionString("UmsDB")));
 
-//Add the database service (Config)
-builder.Services.AddDbContext<ConfigContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ConfigDB"));
-});
-
 //Add emailDB service
 builder.Services.AddDbContext<EmailDbContext>(opts =>
 {
     opts.UseSqlServer(builder.Configuration.GetConnectionString("EmailDB"));
 });
-
-builder.Services.AddScoped<ICommonConfigRepository, CommonConfigRepository>();
-
-//var x = (builder.Configuration.GetConnectionString("AESDefaultConnection"));
 
 builder.Services.AddSingleton<ILogService, LogService>();
 builder.Services.AddSingleton<ILicense, LicenseService>();

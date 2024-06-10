@@ -35,12 +35,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CommonInsfrastructure\CommonInsfrastructure.csproj" />
-    <ProjectReference Include="..\Data\Data.csproj" />
     <ProjectReference Include="..\LicenseLibrary\LicenseLibrary.csproj" />
+    <ProjectReference Include="..\Data\Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="EmailClassLibrary">
+      <HintPath>..\EmailClassLibrary.dll</HintPath>
+    </Reference>
     <Reference Include="LoggerLibrary">
       <HintPath>..\LoggerLibrary.dll</HintPath>
     </Reference>
