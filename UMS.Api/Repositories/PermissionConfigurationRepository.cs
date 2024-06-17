@@ -352,11 +352,11 @@ namespace UMS.Api.Repositories
             }
         }
 
-        public void unassignPermissionFromRole(long roleId, long permissionId, long deletedBy)
+        public void unassignPermissionFromRole(UnassignPermissionsDTO permission, long deletedBy)
         {
             try
             {
-                Role? role = m_umsContext.Roles.FirstOrDefault(r => r.RoleId == roleId);
+               /* Role? role = m_umsContext.Roles.FirstOrDefault(r => r.RoleId == roleId);
                 Permission? permission = m_umsContext.Permissions.FirstOrDefault(p=>p.PermissionId == permissionId);
 
                 if (role != null)
@@ -386,6 +386,39 @@ namespace UMS.Api.Repositories
                 else
                 {
                     throw new Exception("Role not found");
+                }*/
+
+                if(permission.RoleId == 0)
+                {
+                    throw new Exception("Role Id not found");
+                }
+
+                Role? role = m_umsContext.Roles.FirstOrDefault(r=>r.RoleId == permission.RoleId);
+
+                if(role == null)
+                {
+                    throw new Exception("Role is invalid. First create role first");
+                }
+
+                foreach (long permissionId in permission.PermissionIds)
+                {
+                    if (permissionId == 0)
+                    {
+                        throw new Exception("Permission Id not found");
+                    }
+
+                    RolePermission? rolePermissions = m_umsContext.RolePermissions.FirstOrDefault(rp=>rp.RoleId == permission.RoleId && rp.PermissionId == permissionId);
+
+                    if (rolePermissions == null)
+                    {
+                        throw new Exception("Permissions are not assigned to roles");
+                    }
+
+                    rolePermissions.DeletedAt = DateTime.Now;
+                    rolePermissions.DeletedBy = deletedBy;
+
+                    m_dbContext.Update(rolePermissions);
+                    m_dbContext.Save();
                 }
             }
             catch (Exception ex)

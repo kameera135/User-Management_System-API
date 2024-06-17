@@ -466,11 +466,11 @@ namespace UMS.Api.Services
             }
         }
 
-        public void unassignPermissionFromRole(long roleId, long permissionId, long deletedBy)
+        public void unassignPermissionFromRole(UnassignPermissionsDTO permission, long deletedBy)
         {
             try
             {
-                m_permissionConfigurationRepository.unassignPermissionFromRole(roleId, permissionId, deletedBy);
+                m_permissionConfigurationRepository.unassignPermissionFromRole(permission, deletedBy);
             }
             catch (Exception ex)
             {

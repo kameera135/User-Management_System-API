@@ -55,4 +55,12 @@
         public string Role { get; set; } = null!;
     }
 
+    public class UnassignPermissionsDTO
+    {
+        public long RoleId { get; set; }
+
+        public List<long> PermissionIds { get; set; } = null!;
+
+    }
+
 }

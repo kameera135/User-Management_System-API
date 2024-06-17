@@ -39,6 +39,6 @@ namespace UMS.Api.Interfaces
         void deletePermission(long permissionId, long deletedBy);
         List<GetRolesNotForUserDTO> getUnassignUserRoles(long userId, long platformId);
         List<RoleDTO> getRolesByPlatform(long platformId, string searchedRoleName);
-        void unassignPermissionFromRole(long roleid, long permissionId, long deletedBy);
+        void unassignPermissionFromRole(UnassignPermissionsDTO permission, long deletedBy);
     }
 }

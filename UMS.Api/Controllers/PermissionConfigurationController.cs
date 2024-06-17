@@ -462,13 +462,13 @@ namespace UMS.Api.Controllers
 
         //UNASSIGN PERMISSIONS FROM ROLE
         [HttpDelete("configuration/permissions/role/unassign")]
-        public IActionResult UnassignPermissionFromRole(long roleId, long permissionId, long deletedBy)
+        public IActionResult UnassignPermissionFromRole(UnassignPermissionsDTO permission, long deletedBy)
         {
             m_logService.Log("Permission Configuration -> UnassignPermissionsFromRole() was called");
 
             try
             {
-                m_configurationService.unassignPermissionFromRole(roleId, permissionId, deletedBy);
+                m_configurationService.unassignPermissionFromRole(permission, deletedBy);
                 return Ok(new
                 {
                     status_code = StatusCodes.Status200OK,
