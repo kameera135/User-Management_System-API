@@ -186,60 +186,55 @@ namespace UMS.Api.Repositories
 
                 List<Role> tempRole = m_dbContext.Get<Role>().Where(r => r.Role1 == role.Role.ToLower().Replace(" ", "_") && r.DeletedAt == null && r.Status == true).ToList();
 
-                if(exsistingResult != null)
+
+                if (exsistingResult == null)
                 {
-                    if (tempRole.Any(result => result.RoleId != exsistingResult.RoleId))
+                    throw new Exception("Role not found");
+                }
+
+                if (tempRole.Any(result => result.RoleId != exsistingResult.RoleId && role.PlatformIds.Contains((long)result.PlatformId)))
+                {
+                    throw new Exception("The specified role name is already assigned to another role. Please choose a unique name for the role you are trying to update.");
+                }
+
+                foreach (long platformId in role.PlatformIds)
+                {
+                    Platform? platform = m_umsContext.Platforms.FirstOrDefault(p => p.PlatformId == platformId);
+
+                    if (platform == null)
                     {
-                        throw new Exception("The specified role name is already assigned to another role. Please choose a unique name for the role you are trying to update.");
+                        throw new Exception("One or more platforms can not find from the already created platforms.");
+                    }
+
+                    Role? platformRole = m_dbContext.Get<Role>().FirstOrDefault(r => r.Role1 == exsistingResult.Role1 && r.PlatformId == platformId && r.RoleId == exsistingResult.RoleId);
+
+
+                    if (platformRole != null)
+                    {
+                        // Update the existing role
+                        platformRole.Role1 = role.Role.ToLower().Replace(" ", "_");
+                        platformRole.Status = role.Status;
+                        platformRole.UpdatedAt = DateTime.Now;
+                        platformRole.UpdatedBy = updatedBy;
+
+                        m_dbContext.Update(platformRole);
                     }
                     else
                     {
-                        if (exsistingResult != null && exsistingResult.RoleId == role.RoleId)
+                        // Create a new role for the new platform
+                        Role newRole = new Role
                         {
-                            foreach (long platformId in role.PlatformIds)
-                            {
-                                Platform? platform = m_umsContext.Platforms.FirstOrDefault(p => p.PlatformId == platformId);
-
-                                if(platform != null)
-                                {
-                                    //to check platform ID is already in there
-                                    if (exsistingResult.PlatformId == platformId)
-                                    {
-                                        exsistingResult.Role1 = role.Role;
-                                        exsistingResult.Status = role.Status;
-                                        exsistingResult.UpdatedAt = DateTime.Now;
-                                        exsistingResult.UpdatedBy = updatedBy;
-
-                                        m_dbContext.Update(exsistingResult);
-                                        m_dbContext.Save();
-                                    }
-                                    else
-                                    {
-                                        Role newRole = new Role
-                                        {
-                                            Role1 = role.Role.ToLower().Replace(" ", "_"),
-                                            PlatformId = platformId,
-                                            CreatedAt = DateTime.Now,
-                                            CreatedBy = updatedBy,
-                                        };
-                                        m_dbContext.Create(newRole);
-                                        m_dbContext.Save();
-                                        //throw new Exception("Try again");
-                                    }
-                                }
-                                else
-                                {
-                                    throw new Exception("One or more platforms can not find from the already created platforms.");
-                                }
-                            }
-                        }
-                        else
-                        {
-                            throw new Exception("Role not found");
-                        }
+                            Role1 = role.Role.ToLower().Replace(" ", "_"),
+                            PlatformId = platformId,
+                            CreatedAt = DateTime.Now,
+                            CreatedBy = updatedBy,
+                            Status = role.Status
+                        };
+                        m_dbContext.Create(newRole);
                     }
                 }
-                else { throw new Exception("Role not found"); }
+                m_dbContext.Save();
+
             }
             catch (Exception ex)
             {
