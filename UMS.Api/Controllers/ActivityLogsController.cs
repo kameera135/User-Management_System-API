@@ -32,25 +32,11 @@ namespace UMS.Api.Controllers
 
             try 
             {
-                //int parsedYear = int.Parse(year);
-                //int parsedMonth = int.Parse(month);
-
-                //int lastDayMonth;
-                //int lastDayYear;
-
-                //if (parsedMonth == 12)
-                //{
-                //    lastDayYear = parsedYear + 1;
-                //    lastDayMonth = 1;
-                //}
-                //else
-                //{
-                //    lastDayYear = parsedYear;
-                //    lastDayMonth = parsedMonth + 1;
-                //}
-
                 DateTime firstDay = DateTime.Parse(firstDateString);
+                firstDay = firstDay.Date;
+
                 DateTime lastDay = DateTime.Parse(lastDateString);
+                lastDay = lastDay.Date;
 
                 List<ActivityLogDTO> result = new List<ActivityLogDTO>();
 
@@ -102,6 +88,57 @@ namespace UMS.Api.Controllers
                     m_logService.Log($"User list: Not found.");
                     return Ok(response);
                 }
+            }
+            catch (Exception ex)
+            {
+                m_logService.Log(ex.ToString(), "error");
+                var errorResponse = new
+                {
+                    Message = "Internal Server Error",
+                    ErrorDetails = ex.Message
+                };
+
+                return StatusCode(StatusCodes.Status500InternalServerError, errorResponse);
+            }
+        }
+
+        [HttpGet("activity_logs/exportAll")]
+        public IActionResult ExportActivityLogs(int platformId, int roleId, string firstDateString, string lastDateString, long? userId)
+        {
+            m_logService.Log("Activity Logs -> GetActivityLogs() was called");
+
+            try
+            {
+                DateTime firstDay = DateTime.Parse(firstDateString);
+                firstDay = firstDay.Date;
+
+                DateTime lastDay = DateTime.Parse(lastDateString);
+                lastDay = lastDay.Date;
+
+                List<ActivityLogDTO> result = new List<ActivityLogDTO>();
+
+
+
+                if (platformId != 0 && platformId != null)
+                {
+                    if (roleId != 0 && platformId != null)
+                    {
+                        result = m_activityLogsService.getPlatformRoleActivityLogs(firstDay, lastDay, platformId, roleId, userId);
+                    }
+                    else
+                    {
+                        result = m_activityLogsService.getPlatformActivityLogs(firstDay, lastDay, platformId, userId);
+                    }
+                }
+                else
+                {
+                    result = m_activityLogsService.getAllActivityLogs(firstDay, lastDay, userId);
+                }
+
+
+                    m_logService.Log("User list: Get successful.");
+                    return Ok(result);
+               
             }
             catch (Exception ex)
             {
