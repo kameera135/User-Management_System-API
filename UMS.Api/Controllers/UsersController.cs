@@ -395,6 +395,8 @@ namespace UMS.Api.Controllers
             }
         }
 
+
+
         //GET USERS ROLES AND PERMISSIONS
         [HttpGet("users/roles_and_permissions")]
         public IActionResult GetRolePermissions(long userId, long platformId)
