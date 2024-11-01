@@ -1,8 +1,8 @@
 /*
 Wrote Date: 10 Jan 2024
-Wrote by: Kameera Hemachandra, Thushara Makuloluwa
+Wrote by: Kameera Hemachandra
 Modified Date: 07 June 2024
-Modified By: Madushan Jayawardane
+Modified By: Kameera Hemachandra
 
 DataBase Name: UMS (User Management System)
 */
@@ -198,7 +198,7 @@ ALTER TABLE RolePermissions ADD FOREIGN KEY (RoleID) REFERENCES Roles(RoleID);
 ALTER TABLE RolePermissions ADD FOREIGN KEY (PermissionID) REFERENCES Permissions(PermissionID);
 
 --Insert Values
-INSERT [dbo].[Users] ([UserName], [EmployeeID], [PasswordHash], [PasswordSalt], [FirstName], [LastName], [Email], [Phone], [FirstLogin], [CreatedAt], [UpdatedAt], [DeletedAt], [CreatedBy], [UpdatedBy], [DeletedBy]) VALUES (N'admin', NULL, 'b109f3bbbc244eb82441917ed06d618b9008dd09b3befd1b5e07394c706a8bb980b1d7785e5976ec049b46df5f1326af5a2ea6d103fd07c95385ffab0cacbc86', '90605861441667748303', N'Admin', N'User', N'adminuser@mail.com', N'982653368', N'Just Added', GETDATE(), NULL, NULL,NULL,NULL, NULL)
+INSERT [dbo].[Users] ([UserName], [EmployeeID], [PasswordHash], [PasswordSalt], [FirstName], [LastName], [Email], [Phone], [FirstLogin], [CreatedAt], [UpdatedAt], [DeletedAt], [CreatedBy], [UpdatedBy], [DeletedBy]) VALUES (N'admin', NULL, '39d0b09aa11dd4c072bcd449ad5757e05d16b2b206e7665532be9f114fcb7fc4592b9d1b3e61888f50b404ba8e885d42c7006e846c2de2f165e157c7fb6aa1d8', '25625732412409945593', N'Admin', N'User', N'adminuser@mail.com', N'982653368', N'Just Added', GETDATE(), NULL, NULL,NULL,NULL, NULL)
 INSERT [dbo].[Platforms] ([PlatformName], [PlatformCode], [PlatformUrl], [Description], [CreatedAt], [UpdatedAt], [DeletedAt], [CreatedBy], [UpdatedBy], [DeletedBy]) VALUES (N'User Management System', N'UMS', N'http://localhost:4200', N'System for manage users', GETDATE(), NULL, NULL, NULL, NULL, NULL)
 INSERT [dbo].[Roles] ([Role], [PlatformID], [Status], [CreatedAt], [UpdatedAt], [DeletedAt], [CreatedBy], [UpdatedBy], [DeletedBy]) VALUES (N'Administrator', 1, 1, GETDATE(), NULL, NULL, NULL, NULL, NULL)
 INSERT [dbo].[Permissions] ([Permission], [PlatformID], [Status], [IsLicence], [CreatedAt], [UpdatedAt], [DeletedAt], [CreatedBy], [UpdatedBy], [DeletedBy]) VALUES (N'add_users', 1, 1, 0, GETDATE(), NULL, NULL, NULL, NULL, NULL)
